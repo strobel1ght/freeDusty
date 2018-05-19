@@ -5,56 +5,164 @@ using Microsoft.Xna.Framework;
 using StardewModdingAPI;
 using StardewModdingAPI.Events;
 using StardewValley;
+using Microsoft.Xna.Framework.Graphics;
 
 namespace freeDusty
 {
     public class ModEntry : Mod
     {
         Dusty doggie;
+        GameLocation spawnMap;
 
-        // TODO: Edit cursors(?) to remove Dusty's evil eyes from his box        
         public override void Entry(IModHelper helper)
         {
+            helper.Content.AssetLoaders.Add(new DustyLoader(this.Helper));            
+            
+            if(!Game1.isRaining && !Game1.isSnowing)
+                helper.Content.AssetEditors.Add(new BoxEditor(this.Helper));
+
             TimeEvents.AfterDayStarted += this.AfterDayStarted;
             SaveEvents.BeforeSave += this.BeforeSave;
-            GameEvents.HalfSecondTick += this.OneSecond;
+
+            //GameEvents.EighthUpdateTick += this.Second;
         }
 
-        public void OneSecond(object sender, EventArgs e)
+        public void Second(object sender, EventArgs e)
         {
-            if(Game1.currentLocation != null) { 
-                //this.Monitor.Log("Collides? "+doggie.collides.ToString()+" -- moved? "+doggie.moved);
-                //this.Monitor.Log("Next position: " + doggie.nextPosition(doggie.FacingDirection).ToString());
-            }
-            // this.Monitor.Log(Game1.currentLocation.ToString());
-        }        
+            if(spawnMap != null && spawnMap.characters.Contains(doggie))
+                this.Monitor.Log("Dusty is at " + doggie.Position.X/64 + "/" + doggie.Position.Y/64);
+        }
 
         public void AfterDayStarted(object sender, EventArgs e)
-        {
-            if (!Game1.isRaining && !Game1.isSnowing /*&& !Game1.IsMultiplayer/*&& !Game1.player.IsMainPlayer*/)
+        {   
+            // Spawn Dusty
+            if (!Game1.isRaining && !Game1.isSnowing && Game1.player.IsMainPlayer)
             {
-                Vector2 pos = new Vector2(/*53, 68) * 64f; */67, 18) * 64f; //<-- for farm
+                spawnMap = Game1.getLocationFromName("Town");
 
-                // TODO: Load sprite from mod folder       
-                // TODO: Make him spawn randomly around town but with a slight preferance for his hut 
-                // TODO: Remove eyes from hut if he's out and about
-                 doggie = new Dusty(new AnimatedSprite("myDusty.xnb", 0, 29, 25), pos, 0, "Dusty");
+                Vector2 inPen = new Vector2(53, 68) * 64f;                
+                Vector2 spawn = this.GetDustySpawn();
+
+                // Spawn Dusty in his pen 70% of the time
+                // Spawn him somewhere in town 30% of the time
+                if (Game1.random.Next(1, 10) > 7)
+                {
+                    //this.Monitor.Log("Spawning Dusty at " + spawn.X + "/" + spawn.Y+"");
+                    doggie = new Dusty(new AnimatedSprite("Dusty.xnb", 0, 29, 25), spawn, 0, "Dusty");
+                }
+                else
+                {
+                    //this.Monitor.Log("Spawning Dusty in his pen.");
+                    doggie = new Dusty(new AnimatedSprite("Dusty.xnb", 0, 29, 25), inPen, 0, "Dusty");
+                }
+
+                spawnMap.addCharacter(doggie);
                 
-                Game1.getLocationFromName(/*"Town"*/"Farm").addCharacter(doggie);
+                // Make Dusty's area walkable
+                // TODO: Figure this out
+               /* for(int i=51; i<=54; i++)
+                {
+                    for(int j=68; j<=70; j++)
+                    {
+                        spawnMap.setTileProperty(i, j, "Buildings", "Passable", "true");
+                        spawnMap.setTileProperty(i, j, "Back", "Passable", "true");
+                        spawnMap.setTileProperty(i, j, "Front", "Passable", "true");
+                        spawnMap.setTileProperty(i, j, "AlwaysFront", "Passable", "true");
+                        spawnMap.setTileProperty(i, j, "Paths", "Passable", "true");
 
-                this.Monitor.Log("Here, have a Dusty");               
+                        this.Monitor.Log("Made tile " + i + "/" + j + " walkable");
+                    }
+                }*/
             }
         }
 
+        // Remove Dusty NPC at the end of the day to avoid serialization issues
         public void BeforeSave(object sender, EventArgs e)
         {
-            if (Game1.getLocationFromName("Farm").getCharacterFromName("Dusty") != null)
+            if (spawnMap.getCharacterFromName("Dusty") != null)
             {
-                this.Monitor.Log("Removing Dusty to escape evil serialization");
-                Game1.getLocationFromName("Farm").characters.Remove(doggie);
+                //this.Monitor.Log("Removing Dusty to escape evil serialization");
+                spawnMap.characters.Remove(doggie);
             }
-            else
-                this.Monitor.Log("No Dusty to remove");
+        }
+
+        private Vector2 GetDustySpawn()
+        {
+            //this.Monitor.Log("Finding spawn point...");
+
+            Vector2 spawn = spawnMap.getRandomTile();
+
+            // Must be within suitable areas (roughly at community center or around town, and not within boarded off area above Clint's)
+            bool posFound = false;
+            while (!posFound)
+            {
+                //this.Monitor.Log("Checking tile " + spawn.X + "/" + spawn.Y + " ...");
+
+                // Acceptable areas (in front of community center and town area)
+                if ((spawn.X >= 12 && spawn.X <= 65) && (spawn.Y >= 10 && spawn.Y <= 39))
+                    posFound = true;
+                else if ((spawn.X >= 4 && spawn.X <= 110) && (spawn.Y >= 54 && spawn.Y <= 96))
+                    posFound = true;
+
+                // Not in the cordoned off area above Clint's shop
+                if (posFound && ((spawn.X >= 88 && spawn.X <= 106) && (spawn.Y >= 63 && spawn.Y <= 75)))
+                    posFound = false;
+
+                if (!posFound)
+                    spawn = spawnMap.getRandomTile();
+            }
+
+            if (!spawnMap.isTileLocationTotallyClearAndPlaceable(spawn))
+            {
+                //this.Monitor.Log("Spawn location isn't clear, finding nearby clear location...");
+                spawn = FindSafePosition(spawn);
+            }
+
+            return spawn * 64f;
+        }
+
+        private Vector2 FindSafePosition(Vector2 pos)
+        {
+            // Find a clear location around the specified position
+            GameLocation theTown = Game1.getLocationFromName("Town");
+
+            // Check the 5 surrounding circles
+            for (int i = 1; i <= 5; i++)
+            {
+                // Check above
+                if (theTown.isTileLocationTotallyClearAndPlaceable((int)pos.X, (int)pos.Y - i))// (new xTile.Dimensions.Location((int)pos.X, (int)pos.Y - i), Game1.viewport))
+                    return new Vector2(pos.X, pos.Y - i);
+
+                // Check below
+                if (theTown.isTileLocationTotallyClearAndPlaceable((int)pos.X, (int)pos.Y + i)) //(new xTile.Dimensions.Location((int)pos.X, (int)pos.Y + i), Game1.viewport))
+                    return new Vector2(pos.X, pos.Y + i);
+
+                // Check left
+                if (theTown.isTileLocationTotallyClearAndPlaceable((int)pos.X - i, (int)pos.Y)) //(new xTile.Dimensions.Location((int)pos.X - i, (int)pos.Y), Game1.viewport))
+                    return new Vector2(pos.X - i, pos.Y);
+
+                // Check right
+                if (theTown.isTileLocationTotallyClearAndPlaceable((int)pos.X + i, (int)pos.Y)) //(new xTile.Dimensions.Location((int)pos.X + i, (int)pos.Y), Game1.viewport))
+                    return new Vector2(pos.X + i, pos.Y);
+
+                // Check top right
+                if (theTown.isTileLocationTotallyClearAndPlaceable((int)pos.X + i, (int)pos.Y - i)) //(new xTile.Dimensions.Location((int)pos.X + i, (int)pos.Y - i), Game1.viewport))
+                    return new Vector2(pos.X + i, pos.Y - i);
+
+                // Check top left
+                if (theTown.isTileLocationTotallyClearAndPlaceable((int)pos.X - i, (int)pos.Y - i)) //(new xTile.Dimensions.Location((int)pos.X - i, (int)pos.Y - i), Game1.viewport))
+                    return new Vector2(pos.X - i, pos.Y - i);
+
+                // Check below right
+                if (theTown.isTileLocationTotallyClearAndPlaceable((int)pos.X + i, (int)pos.Y + i)) //(new xTile.Dimensions.Location((int)pos.X + i, (int)pos.Y + i), Game1.viewport))
+                    return new Vector2(pos.X + i, pos.Y + i);
+
+                // Check below left
+                if (theTown.isTileLocationTotallyClearAndPlaceable((int)pos.X - i, (int)pos.Y + i)) //(new xTile.Dimensions.Location((int)pos.X - i, (int)pos.Y + i), Game1.viewport))
+                    return new Vector2(pos.X - i, pos.Y + i);
+            }
+            //this.Monitor.Log("Didn't find a nearby safe position");
+            return pos;
         }
     }
 }

@@ -18,12 +18,6 @@ namespace freeDusty
         [XmlIgnore]
         public bool collides = false;
 
-        public Dusty()
-        {
-            this.Sprite = new AnimatedSprite("myDusty.xnb", 0, 29, 25);
-            this.willDestroyObjectsUnderfoot = false;
-        }
-
         public Dusty(AnimatedSprite animatedSprite, Vector2 position, int facingDir, string name)
         {
             this.Sprite = animatedSprite;
@@ -31,21 +25,8 @@ namespace freeDusty
             this.FacingDirection = facingDir;
             this.Name = name;
 
-            this.DefaultMap = /*"Town";*/"Farm";
+            this.DefaultMap = "Town";
             this.speed = 2;
-            this.willDestroyObjectsUnderfoot = false;
-        }
-
-        public Dusty(AnimatedSprite sprite, Vector2 position, string defaultMap, int facingDirection, string name, bool datable, Dictionary<int, int[]> schedule, Microsoft.Xna.Framework.Graphics.Texture2D portrait, bool eventActor)
-        {
-            this.Sprite = sprite;
-            this.Position = position;
-            this.DefaultMap = defaultMap;
-            this.FacingDirection = facingDirection;
-            this.Name = name;
-            //this.Schedule = schedule;              
-            this.Portrait = portrait;
-            this.eventActor = eventActor;
             this.willDestroyObjectsUnderfoot = false;
         }
 
@@ -77,7 +58,7 @@ namespace freeDusty
 
                     if (direction < 4)
                     {
-                        if (Game1.getLocationFromName("Farm").isCollidingPosition(this.nextPosition(direction), Game1.viewport, this))
+                        if (Game1.getLocationFromName(this.DefaultMap).isCollidingPosition(this.nextPosition(direction), Game1.viewport, this))
                         {
                             this.faceDirection(facingDirection);
                             return;
