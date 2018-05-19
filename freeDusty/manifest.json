@@ -2,9 +2,9 @@
    "Name": "freeDusty",
    "Author": "skuldomg",
    "Version": "1.0.0-beta.1",
-   "Description": "Will make Dusty spawn in his pen or randomly around town.",
+   "Description": "Will make Dusty (Alex' dog) spawn in his pen or randomly around town.",
    "UniqueID": "skuldomg.freeDusty",
    "EntryDll": "freeDusty.dll",
    "MinimumApiVersion": "2.6-beta.14",
-   "UpdateKeys": ["Nexus:0000"]    
+   "UpdateKeys": ["Nexus:2206"]    
 }
