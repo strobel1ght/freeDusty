@@ -10,11 +10,13 @@ namespace freeDusty
     {
         private IModHelper Helper;
         private string prefix = "";
+        private bool eyes = false;
 
-        public BoxEditor(IModHelper helper, string pre = "")
+        public BoxEditor(IModHelper helper, string pre = "", bool eyes = false)
         {
             this.Helper = helper;
             prefix = pre;
+            this.eyes = eyes;
         }
 
         public bool CanEdit<T>(IAssetInfo asset)
@@ -30,7 +32,12 @@ namespace freeDusty
         public void Edit<T>(IAssetData asset)
         {
             Texture2D emptyBox = this.Helper.Content.Load<Texture2D>("assets/"+prefix+"Box.png", ContentSource.ModFolder);
-            asset.AsImage().PatchImage(emptyBox, targetArea: new Rectangle(192, 0, 16, 16));            
+            Texture2D eyesBox = this.Helper.Content.Load<Texture2D>("assets/" + prefix + "BoxEyes.png", ContentSource.ModFolder);
+
+            if(!eyes)
+                asset.AsImage().PatchImage(emptyBox, targetArea: new Rectangle(192, 0, 16, 16));
+            else
+                asset.AsImage().PatchImage(eyesBox, targetArea: new Rectangle(192, 0, 16, 16));
         }
     }
 }

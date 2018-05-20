@@ -50,13 +50,22 @@ namespace freeDusty
         }
 
         public void AfterDayStarted(object sender, EventArgs e)
-        {   
+        {
+            String prefix = "";
+
+            if (Game1.currentSeason.ToLower().Equals("spring") || Game1.currentSeason.ToLower().Equals("summer"))
+                prefix = "spring";
+            else if (Game1.currentSeason.ToLower().Equals("fall"))
+                prefix = "fall";
+            else
+                prefix = "winter";
+
             // Spawn Dusty
             if (!Game1.isRaining && !Game1.isSnowing && Game1.player.IsMainPlayer)
             {
                 spawnMap = Game1.getLocationFromName("Town");
 
-                Vector2 inPen = new Vector2(53, 68) * 64f;                
+                Vector2 inPen = new Vector2(53, 68) * 64f;
                 Vector2 spawn = this.GetDustySpawn();
 
                 // Spawn Dusty in his pen 70% of the time
@@ -70,8 +79,8 @@ namespace freeDusty
                 {
                     //this.Monitor.Log("Spawning Dusty in his pen.");
                     doggie = new Dusty(new AnimatedSprite("Dusty.xnb", 0, 29, 25), inPen, 0, "Dusty");
-                }                
-                
+                }
+
                 spawnMap.addCharacter(doggie);
 
                 // Make Dusty's area walkable
@@ -89,22 +98,14 @@ namespace freeDusty
                          this.Monitor.Log("Made tile " + i + "/" + j + " walkable");
                      }
                  }*/
-
-                String prefix = "";
-
-                if (Game1.currentSeason.ToLower().Equals("spring") || Game1.currentSeason.ToLower().Equals("summer"))
-                    prefix = "spring";
-                else if (Game1.currentSeason.ToLower().Equals("fall"))
-                    prefix = "fall";
-                else
-                    prefix = "winter";
-
-                Helper.Content.AssetEditors.Add(new BoxEditor(this.Helper, prefix));
+                Helper.Content.AssetEditors.Add(new BoxEditor(this.Helper, prefix, false));
                 //this.Monitor.Log("Added editor");
-
-                Helper.Content.InvalidateCache(prefix + "_town");
-                Helper.Content.InvalidateCache(@"/Maps/" + prefix + "_town");
             }
+            else
+                Helper.Content.AssetEditors.Add(new BoxEditor(this.Helper, prefix, true));
+
+            Helper.Content.InvalidateCache(prefix + "_town");
+            Helper.Content.InvalidateCache(@"/Maps/" + prefix + "_town");
         }
 
         // Remove Dusty NPC at the end of the day to avoid serialization issues
