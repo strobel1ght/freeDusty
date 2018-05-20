@@ -10,22 +10,21 @@ using StardewValley.Menus;
 
 namespace freeDusty
 {
-    public class ModEntry : Mod
+    public class ModEntry : Mod, IAssetEditor
     {
         Dusty doggie;
         GameLocation spawnMap;
+        Texture2D dustyTex;
+        String prefix = "";
+        Texture2D emptyBox;
 
         public override void Entry(IModHelper helper)
         {
-            helper.Content.AssetLoaders.Add(new DustyLoader(this.Helper));            
-            
-            if(!Game1.isRaining && !Game1.isSnowing)
-                helper.Content.AssetEditors.Add(new BoxEditor(this.Helper));
+            dustyTex = Helper.Content.Load<Texture2D>("assets/Dusty.png", ContentSource.ModFolder);
 
             TimeEvents.AfterDayStarted += this.AfterDayStarted;
             SaveEvents.BeforeSave += this.BeforeSave;
-
-            MenuEvents.MenuChanged += this.MenuChanged;            
+            MenuEvents.MenuChanged += this.MenuChanged;
 
             //GameEvents.EighthUpdateTick += this.Second;
         }
@@ -34,14 +33,13 @@ namespace freeDusty
         public void MenuChanged(object sender, EventArgs e)
         {
             if(Game1.activeClickableMenu is DialogueBox dialogue)
-            {                
-                //this.Monitor.Log("Dialogue is up with contents " + dialogue.getCurrentString());
-
-                if (dialogue.getCurrentString().Equals("Hey, Stop that! ...Yuck!"))
+            {
+               // this.Monitor.Log("Dialogue is up with contents " + dialogue.getCurrentString());                
+                if (dialogue.getCurrentString().Equals("Hey, Stop that! ...Yuck!") || (Game1.currentSpeaker != null && Game1.currentSpeaker.Equals(doggie)))
                 {                    
                     dialogue.closeDialogue();
                     doggie.isEmoting = false;
-                  //  this.Monitor.Log("Abort, abort!");                    
+                    //this.Monitor.Log("Abort, abort!");                                      
                 }
             }
         }
@@ -55,7 +53,7 @@ namespace freeDusty
         public void AfterDayStarted(object sender, EventArgs e)
         {   
             // Spawn Dusty
-            if (!Game1.isRaining && !Game1.isSnowing && Game1.player.IsMainPlayer)
+            if (!Game1.isRaining && !Game1.isSnowing)
             {
                 spawnMap = Game1.getLocationFromName("Town");
 
@@ -67,31 +65,44 @@ namespace freeDusty
                 if (Game1.random.Next(1, 10) > 7)
                 {
                     //this.Monitor.Log("Spawning Dusty at " + spawn.X + "/" + spawn.Y+"");
-                    doggie = new Dusty(new AnimatedSprite("Dusty.xnb", 0, 29, 25), spawn, 0, "Dusty");
+                    doggie = new Dusty(new AnimatedSprite(dustyTex, 0, 29, 25), spawn, 0, "Dusty");
                 }
                 else
                 {
                     //this.Monitor.Log("Spawning Dusty in his pen.");
-                    doggie = new Dusty(new AnimatedSprite("Dusty.xnb", 0, 29, 25), inPen, 0, "Dusty");
+                    doggie = new Dusty(new AnimatedSprite(dustyTex, 0, 29, 25), inPen, 0, "Dusty");
                 }                
                 
-                spawnMap.addCharacter(doggie);                
-                
+                spawnMap.addCharacter(doggie);
+
                 // Make Dusty's area walkable
                 // TODO: Figure this out
-               /* for(int i=51; i<=54; i++)
-                {
-                    for(int j=68; j<=70; j++)
-                    {
-                        spawnMap.setTileProperty(i, j, "Buildings", "Passable", "true");
-                        spawnMap.setTileProperty(i, j, "Back", "Passable", "true");
-                        spawnMap.setTileProperty(i, j, "Front", "Passable", "true");
-                        spawnMap.setTileProperty(i, j, "AlwaysFront", "Passable", "true");
-                        spawnMap.setTileProperty(i, j, "Paths", "Passable", "true");
+                /* for(int i=51; i<=54; i++)
+                 {
+                     for(int j=68; j<=70; j++)
+                     {
+                         spawnMap.setTileProperty(i, j, "Buildings", "Passable", "true");
+                         spawnMap.setTileProperty(i, j, "Back", "Passable", "true");
+                         spawnMap.setTileProperty(i, j, "Front", "Passable", "true");
+                         spawnMap.setTileProperty(i, j, "AlwaysFront", "Passable", "true");
+                         spawnMap.setTileProperty(i, j, "Paths", "Passable", "true");
 
-                        this.Monitor.Log("Made tile " + i + "/" + j + " walkable");
-                    }
-                }*/
+                         this.Monitor.Log("Made tile " + i + "/" + j + " walkable");
+                     }
+                 }*/
+
+                // Patch Dusty's box so that his eyes don't peek out
+                if (Game1.currentSeason.ToLower().Equals("spring") || Game1.currentSeason.ToLower().Equals("summer"))
+                    prefix = "spring";
+                else if (Game1.currentSeason.ToLower().Equals("fall"))
+                    prefix = "fall";
+                else
+                    prefix = "winter";
+
+                emptyBox = this.Helper.Content.Load<Texture2D>("assets/" + prefix + "Box.xnb", ContentSource.ModFolder);
+
+                Helper.Content.InvalidateCache(prefix + "_town");
+                Helper.Content.InvalidateCache(@"/Maps/" + prefix + "_town");
             }
         }
 
@@ -182,6 +193,24 @@ namespace freeDusty
             }
             //this.Monitor.Log("Didn't find a nearby safe position");
             return pos;
+        }
+
+        public bool CanEdit<T>(IAssetInfo asset)
+        {
+            if (prefix.Length <= 0)
+                return false;
+
+            if (asset.AssetNameEquals(prefix + "_town"))
+                return true;
+            else if (asset.AssetNameEquals(@"/Maps/" + prefix + "_town"))
+                return true;
+
+            return false;
+        }
+
+        public void Edit<T>(IAssetData asset)
+        {            
+            asset.AsImage().PatchImage(emptyBox, targetArea: new Rectangle(192, 0, 16, 16));            
         }
     }
 }

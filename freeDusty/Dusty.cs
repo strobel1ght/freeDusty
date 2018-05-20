@@ -22,18 +22,18 @@ namespace freeDusty
         {
             this.Sprite = animatedSprite;
             this.Position = position;
-            this.FacingDirection = facingDir;
-            this.Name = name;
+            this.facingDirection = facingDir;
+            this.name = name;
 
             this.DefaultMap = "Town";
             this.speed = 2;
             this.willDestroyObjectsUnderfoot = false;            
         }
 
-        public override bool canTalk()
+ /*       public override bool canTalk()
         {
             return false;
-        }
+        }*/
 
         public bool moved = false;
         public int moveCount = 0;
