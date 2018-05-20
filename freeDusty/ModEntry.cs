@@ -17,10 +17,7 @@ namespace freeDusty
 
         public override void Entry(IModHelper helper)
         {
-            helper.Content.AssetLoaders.Add(new DustyLoader(this.Helper));            
-            
-            if(!Game1.isRaining && !Game1.isSnowing)
-                helper.Content.AssetEditors.Add(new BoxEditor(this.Helper));
+            helper.Content.AssetLoaders.Add(new DustyLoader(this.Helper));         
 
             TimeEvents.AfterDayStarted += this.AfterDayStarted;
             SaveEvents.BeforeSave += this.BeforeSave;
@@ -75,23 +72,38 @@ namespace freeDusty
                     doggie = new Dusty(new AnimatedSprite("Dusty.xnb", 0, 29, 25), inPen, 0, "Dusty");
                 }                
                 
-                spawnMap.addCharacter(doggie);                
-                
+                spawnMap.addCharacter(doggie);
+
                 // Make Dusty's area walkable
                 // TODO: Figure this out
-               /* for(int i=51; i<=54; i++)
-                {
-                    for(int j=68; j<=70; j++)
-                    {
-                        spawnMap.setTileProperty(i, j, "Buildings", "Passable", "true");
-                        spawnMap.setTileProperty(i, j, "Back", "Passable", "true");
-                        spawnMap.setTileProperty(i, j, "Front", "Passable", "true");
-                        spawnMap.setTileProperty(i, j, "AlwaysFront", "Passable", "true");
-                        spawnMap.setTileProperty(i, j, "Paths", "Passable", "true");
+                /* for(int i=51; i<=54; i++)
+                 {
+                     for(int j=68; j<=70; j++)
+                     {
+                         spawnMap.setTileProperty(i, j, "Buildings", "Passable", "true");
+                         spawnMap.setTileProperty(i, j, "Back", "Passable", "true");
+                         spawnMap.setTileProperty(i, j, "Front", "Passable", "true");
+                         spawnMap.setTileProperty(i, j, "AlwaysFront", "Passable", "true");
+                         spawnMap.setTileProperty(i, j, "Paths", "Passable", "true");
 
-                        this.Monitor.Log("Made tile " + i + "/" + j + " walkable");
-                    }
-                }*/
+                         this.Monitor.Log("Made tile " + i + "/" + j + " walkable");
+                     }
+                 }*/
+
+                String prefix = "";
+
+                if (Game1.currentSeason.ToLower().Equals("spring") || Game1.currentSeason.ToLower().Equals("summer"))
+                    prefix = "spring";
+                else if (Game1.currentSeason.ToLower().Equals("fall"))
+                    prefix = "fall";
+                else
+                    prefix = "winter";
+
+                Helper.Content.AssetEditors.Add(new BoxEditor(this.Helper, prefix));
+                //this.Monitor.Log("Added editor");
+
+                Helper.Content.InvalidateCache(prefix + "_town");
+                Helper.Content.InvalidateCache(@"/Maps/" + prefix + "_town");
             }
         }
 
