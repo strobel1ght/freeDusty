@@ -27,7 +27,7 @@ namespace freeDusty
 
             this.DefaultMap = "Town";
             this.speed = 2;
-            this.willDestroyObjectsUnderfoot = false;
+            this.willDestroyObjectsUnderfoot = false;            
         }
 
         public override bool canTalk()

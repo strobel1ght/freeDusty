@@ -6,6 +6,7 @@ using StardewModdingAPI;
 using StardewModdingAPI.Events;
 using StardewValley;
 using Microsoft.Xna.Framework.Graphics;
+using StardewValley.Menus;
 
 namespace freeDusty
 {
@@ -24,7 +25,25 @@ namespace freeDusty
             TimeEvents.AfterDayStarted += this.AfterDayStarted;
             SaveEvents.BeforeSave += this.BeforeSave;
 
+            MenuEvents.MenuChanged += this.MenuChanged;            
+
             //GameEvents.EighthUpdateTick += this.Second;
+        }
+
+        // Prevent Dusty from getting angry when the player digs through trash near him
+        public void MenuChanged(object sender, EventArgs e)
+        {
+            if(Game1.activeClickableMenu is DialogueBox dialogue)
+            {                
+                //this.Monitor.Log("Dialogue is up with contents " + dialogue.getCurrentString());
+
+                if (dialogue.getCurrentString().Equals("Hey, Stop that! ...Yuck!"))
+                {                    
+                    dialogue.closeDialogue();
+                    doggie.isEmoting = false;
+                  //  this.Monitor.Log("Abort, abort!");                    
+                }
+            }
         }
 
         public void Second(object sender, EventArgs e)
@@ -54,9 +73,9 @@ namespace freeDusty
                 {
                     //this.Monitor.Log("Spawning Dusty in his pen.");
                     doggie = new Dusty(new AnimatedSprite("Dusty.xnb", 0, 29, 25), inPen, 0, "Dusty");
-                }
-
-                spawnMap.addCharacter(doggie);
+                }                
+                
+                spawnMap.addCharacter(doggie);                
                 
                 // Make Dusty's area walkable
                 // TODO: Figure this out
