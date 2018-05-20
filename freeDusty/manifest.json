@@ -1,7 +1,7 @@
 ﻿{
    "Name": "freeDusty",
    "Author": "skuldomg",
-   "Version": "1.0.0-beta.1",
+   "Version": "1.0.0-beta.2",
    "Description": "Will make Dusty (Alex' dog) spawn in his pen or randomly around town.",
    "UniqueID": "skuldomg.freeDusty",
    "EntryDll": "freeDusty.dll",
