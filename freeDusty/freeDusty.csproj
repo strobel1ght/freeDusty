@@ -49,8 +49,11 @@
   <ItemGroup>
     <None Include="assets\Dusty.xnb" />
     <None Include="assets\fallBox.xnb" />
+    <None Include="assets\fallBoxEyes.xnb" />
     <None Include="assets\springBox.xnb" />
+    <None Include="assets\springBoxEyes.xnb" />
     <None Include="assets\winterBox.xnb" />
+    <None Include="assets\winterBoxEyes.xnb" />
     <None Include="manifest.json" />
     <None Include="packages.config" />
   </ItemGroup>

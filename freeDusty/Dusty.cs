@@ -42,6 +42,8 @@ namespace freeDusty
         public override void update(GameTime time, GameLocation location, long id, bool move)
         {
             double next = Game1.random.NextDouble();
+            location = this.currentLocation;
+
             // Behavior before 20:00
             //if (Game1.timeOfDay < 2000)
             //{
@@ -58,7 +60,7 @@ namespace freeDusty
 
                     if (direction < 4)
                     {
-                        if (Game1.getLocationFromName(this.DefaultMap).isCollidingPosition(this.nextPosition(direction), Game1.viewport, this))
+                        if (this.currentLocation.isCollidingPosition(this.nextPosition(direction), Game1.viewport, this))
                         {
                             this.faceDirection(facingDirection);
                             return;
@@ -104,7 +106,7 @@ namespace freeDusty
             }
             //}
 
-            this.MovePosition(time, Game1.viewport, location);                       
+            this.MovePosition(time, Game1.viewport, this.currentLocation);                       
         }
         // Default: right
         private void pant(bool flip = false)
