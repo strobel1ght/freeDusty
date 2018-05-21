@@ -35,10 +35,10 @@ namespace freeDusty
                 //this.Monitor.Log("Dialogue is up with contents " + dialogue.getCurrentString());
 
                 if (dialogue.getCurrentString().Equals("Hey, Stop that! ...Yuck!"))
-                {                    
+                { 
                     dialogue.closeDialogue();
                     doggie.isEmoting = false;
-                  //  this.Monitor.Log("Abort, abort!");                    
+                    //this.Monitor.Log("Abort, abort!");                    
                 }
             }
         }
@@ -60,32 +60,41 @@ namespace freeDusty
             else
                 prefix = "winter";
 
-            // Spawn Dusty
-            if (!Game1.isRaining && !Game1.isSnowing && Game1.player.IsMainPlayer)
+            // Determine spawn map
+            // If player is married to Alex, make Dusty spawn on the farm or in the farm house
+            if (Game1.getCharacterFromName("Alex", true).isMarried())
             {
+                // If it's raining or snowing
+                if (Game1.isRaining || Game1.isSnowing)
+                    spawnMap = Game1.getLocationFromName("FarmHouse");
+                else
+                    spawnMap = Game1.getLocationFromName("Farm");
+            }
+            else if(!Game1.isRaining && !Game1.isSnowing)
                 spawnMap = Game1.getLocationFromName("Town");
 
-                Vector2 inPen = new Vector2(53, 68) * 64f;
-                Vector2 spawn = this.GetDustySpawn();
+            // Find spawn point and spawn Dusty
+            if(Game1.player.IsMainPlayer && spawnMap != null)
+            {
+                    doggie = new Dusty(new AnimatedSprite("Dusty.xnb", 0, 29, 25), this.GetDustySpawn(), 0, "Dusty");
+                    spawnMap.addCharacter(doggie);
+                    Helper.Content.AssetEditors.Add(new BoxEditor(this.Helper, prefix, false));
+            }
+            // If no spawn map could be determined, Dusty should be in his box
+            else if(spawnMap == null)
+                Helper.Content.AssetEditors.Add(new BoxEditor(this.Helper, prefix, true));
 
-                // Spawn Dusty in his pen 70% of the time
-                // Spawn him somewhere in town 30% of the time
-                if (Game1.random.Next(1, 10) > 7)
-                {
-                    //this.Monitor.Log("Spawning Dusty at " + spawn.X + "/" + spawn.Y+"");
-                    doggie = new Dusty(new AnimatedSprite("Dusty.xnb", 0, 29, 25), spawn, 0, "Dusty");
-                }
-                else
-                {
-                    //this.Monitor.Log("Spawning Dusty in his pen.");
-                    doggie = new Dusty(new AnimatedSprite("Dusty.xnb", 0, 29, 25), inPen, 0, "Dusty");
-                }
+            //if (spawnMap == null)
+                //this.Monitor.Log("Did not spawn Dusty today.");
+            //else
+                //this.Monitor.Log("Spawned Dusty at " + spawnMap.Name + " (" + doggie.Position.X/64 + "/" + doggie.Position.Y/64 + ")");
 
-                spawnMap.addCharacter(doggie);
+            //this.Monitor.Log("Is Dusty at "+spawnMap + "? -> " + spawnMap.characters.Contains(doggie));
 
-                // Make Dusty's area walkable
-                // TODO: Figure this out
-                /* for(int i=51; i<=54; i++)
+            /* // TODO: Figure this out
+                /* 
+                 * if(spawnMap.Name.Equals("Town")) {
+                 * for(int i=51; i<=54; i++)
                  {
                      for(int j=68; j<=70; j++)
                      {
@@ -95,14 +104,11 @@ namespace freeDusty
                          spawnMap.setTileProperty(i, j, "AlwaysFront", "Passable", "true");
                          spawnMap.setTileProperty(i, j, "Paths", "Passable", "true");
 
-                         this.Monitor.Log("Made tile " + i + "/" + j + " walkable");
+                         //this.Monitor.Log("Made tile " + i + "/" + j + " walkable");
                      }
-                 }*/
-                Helper.Content.AssetEditors.Add(new BoxEditor(this.Helper, prefix, false));
-                //this.Monitor.Log("Added editor");
-            }
-            else
-                Helper.Content.AssetEditors.Add(new BoxEditor(this.Helper, prefix, true));
+                 }
+                 }
+               */
 
             Helper.Content.InvalidateCache(prefix + "_town");
             Helper.Content.InvalidateCache(@"/Maps/" + prefix + "_town");
@@ -111,10 +117,12 @@ namespace freeDusty
         // Remove Dusty NPC at the end of the day to avoid serialization issues
         public void BeforeSave(object sender, EventArgs e)
         {
-            if (spawnMap.getCharacterFromName("Dusty") != null)
+            //this.Monitor.Log("Removing Dusty from " + doggie.currentLocation.Name + " ... is he on that map? " + doggie.currentLocation.characters.Contains(doggie)+" ... he is at "+ doggie.currentLocation.ToString());
+            
+            if (spawnMap != null && doggie.currentLocation.characters.Contains(doggie))
             {
                 //this.Monitor.Log("Removing Dusty to escape evil serialization");
-                spawnMap.characters.Remove(doggie);
+                doggie.currentLocation.characters.Remove(doggie);
             }
         }
 
@@ -128,21 +136,46 @@ namespace freeDusty
             bool posFound = false;
             while (!posFound)
             {
-                //this.Monitor.Log("Checking tile " + spawn.X + "/" + spawn.Y + " ...");
+                //this.Monitor.Log("Checking tile " + spawn.X + "/" + spawn.Y + " on map "+spawnMap+"...");
+                                
+                if(spawnMap.Name.Equals("Town")) { 
+                    // Acceptable areas (in front of community center and town area)
+                    if ((spawn.X >= 12 && spawn.X <= 65) && (spawn.Y >= 10 && spawn.Y <= 39))
+                        posFound = true;
+                    else if ((spawn.X >= 4 && spawn.X <= 110) && (spawn.Y >= 54 && spawn.Y <= 96))
+                        posFound = true;
 
-                // Acceptable areas (in front of community center and town area)
-                if ((spawn.X >= 12 && spawn.X <= 65) && (spawn.Y >= 10 && spawn.Y <= 39))
-                    posFound = true;
-                else if ((spawn.X >= 4 && spawn.X <= 110) && (spawn.Y >= 54 && spawn.Y <= 96))
-                    posFound = true;
+                    // Not in the cordoned off area above Clint's shop
+                    if (posFound && ((spawn.X >= 88 && spawn.X <= 106) && (spawn.Y >= 63 && spawn.Y <= 75)))
+                        posFound = false;
 
-                // Not in the cordoned off area above Clint's shop
-                if (posFound && ((spawn.X >= 88 && spawn.X <= 106) && (spawn.Y >= 63 && spawn.Y <= 75)))
-                    posFound = false;
+                    // 70% chance to discard the random position and just spawn him in his pen
+                    if (posFound) {
+                        if (Game1.random.Next(1, 10) > 7)
+                        {
+                            spawn.X = 52;
+                            spawn.Y = 67;
+                        }
+                    }                        
+                }
+                else if(spawnMap.Name.Equals("Farm"))
+                {
+                    // Acceptable area around the farm
+                    if ((spawn.X >= 42 && spawn.X <= 73) && (spawn.Y >= 8 && spawn.Y <= 30))
+                        posFound = true;                    
+                }
+                else if(spawnMap.Name.Equals("FarmHouse"))
+                {
+                    // Take max upgrade and also check for .isonmap
+                    if (spawnMap.isTileOnMap(spawn) && ((spawn.X >= 1 && spawn.X <= 40) && (spawn.Y >= 4 && spawn.Y <= 22)))
+                        posFound = true;
+                }                
 
                 if (!posFound)
                     spawn = spawnMap.getRandomTile();
             }
+
+            //this.Monitor.Log("Found position " + spawn.X + "/" + spawn.Y + " on map " + spawnMap);
 
             if (!spawnMap.isTileLocationTotallyClearAndPlaceable(spawn))
             {
@@ -150,47 +183,49 @@ namespace freeDusty
                 spawn = FindSafePosition(spawn);
             }
 
+            //this.Monitor.Log("Seems to be clear for spawn.");
+
             return spawn * 64f;
         }
 
         private Vector2 FindSafePosition(Vector2 pos)
         {
             // Find a clear location around the specified position
-            GameLocation theTown = Game1.getLocationFromName("Town");
+            GameLocation theLocation = spawnMap;
 
             // Check the 5 surrounding circles
             for (int i = 1; i <= 5; i++)
             {
                 // Check above
-                if (theTown.isTileLocationTotallyClearAndPlaceable((int)pos.X, (int)pos.Y - i))// (new xTile.Dimensions.Location((int)pos.X, (int)pos.Y - i), Game1.viewport))
+                if (theLocation.isTileLocationTotallyClearAndPlaceable((int)pos.X, (int)pos.Y - i))// (new xTile.Dimensions.Location((int)pos.X, (int)pos.Y - i), Game1.viewport))
                     return new Vector2(pos.X, pos.Y - i);
 
                 // Check below
-                if (theTown.isTileLocationTotallyClearAndPlaceable((int)pos.X, (int)pos.Y + i)) //(new xTile.Dimensions.Location((int)pos.X, (int)pos.Y + i), Game1.viewport))
+                if (theLocation.isTileLocationTotallyClearAndPlaceable((int)pos.X, (int)pos.Y + i)) //(new xTile.Dimensions.Location((int)pos.X, (int)pos.Y + i), Game1.viewport))
                     return new Vector2(pos.X, pos.Y + i);
 
                 // Check left
-                if (theTown.isTileLocationTotallyClearAndPlaceable((int)pos.X - i, (int)pos.Y)) //(new xTile.Dimensions.Location((int)pos.X - i, (int)pos.Y), Game1.viewport))
+                if (theLocation.isTileLocationTotallyClearAndPlaceable((int)pos.X - i, (int)pos.Y)) //(new xTile.Dimensions.Location((int)pos.X - i, (int)pos.Y), Game1.viewport))
                     return new Vector2(pos.X - i, pos.Y);
 
                 // Check right
-                if (theTown.isTileLocationTotallyClearAndPlaceable((int)pos.X + i, (int)pos.Y)) //(new xTile.Dimensions.Location((int)pos.X + i, (int)pos.Y), Game1.viewport))
+                if (theLocation.isTileLocationTotallyClearAndPlaceable((int)pos.X + i, (int)pos.Y)) //(new xTile.Dimensions.Location((int)pos.X + i, (int)pos.Y), Game1.viewport))
                     return new Vector2(pos.X + i, pos.Y);
 
                 // Check top right
-                if (theTown.isTileLocationTotallyClearAndPlaceable((int)pos.X + i, (int)pos.Y - i)) //(new xTile.Dimensions.Location((int)pos.X + i, (int)pos.Y - i), Game1.viewport))
+                if (theLocation.isTileLocationTotallyClearAndPlaceable((int)pos.X + i, (int)pos.Y - i)) //(new xTile.Dimensions.Location((int)pos.X + i, (int)pos.Y - i), Game1.viewport))
                     return new Vector2(pos.X + i, pos.Y - i);
 
                 // Check top left
-                if (theTown.isTileLocationTotallyClearAndPlaceable((int)pos.X - i, (int)pos.Y - i)) //(new xTile.Dimensions.Location((int)pos.X - i, (int)pos.Y - i), Game1.viewport))
+                if (theLocation.isTileLocationTotallyClearAndPlaceable((int)pos.X - i, (int)pos.Y - i)) //(new xTile.Dimensions.Location((int)pos.X - i, (int)pos.Y - i), Game1.viewport))
                     return new Vector2(pos.X - i, pos.Y - i);
 
                 // Check below right
-                if (theTown.isTileLocationTotallyClearAndPlaceable((int)pos.X + i, (int)pos.Y + i)) //(new xTile.Dimensions.Location((int)pos.X + i, (int)pos.Y + i), Game1.viewport))
+                if (theLocation.isTileLocationTotallyClearAndPlaceable((int)pos.X + i, (int)pos.Y + i)) //(new xTile.Dimensions.Location((int)pos.X + i, (int)pos.Y + i), Game1.viewport))
                     return new Vector2(pos.X + i, pos.Y + i);
 
                 // Check below left
-                if (theTown.isTileLocationTotallyClearAndPlaceable((int)pos.X - i, (int)pos.Y + i)) //(new xTile.Dimensions.Location((int)pos.X - i, (int)pos.Y + i), Game1.viewport))
+                if (theLocation.isTileLocationTotallyClearAndPlaceable((int)pos.X - i, (int)pos.Y + i)) //(new xTile.Dimensions.Location((int)pos.X - i, (int)pos.Y + i), Game1.viewport))
                     return new Vector2(pos.X - i, pos.Y + i);
             }
             //this.Monitor.Log("Didn't find a nearby safe position");
