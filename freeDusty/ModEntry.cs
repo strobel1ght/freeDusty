@@ -99,6 +99,7 @@ namespace freeDusty
                 else
                     prefix = "winter";
 
+                // TODO: Fix it like for 1.3
                 emptyBox = this.Helper.Content.Load<Texture2D>("assets/" + prefix + "Box.xnb", ContentSource.ModFolder);
 
                 Helper.Content.InvalidateCache(prefix + "_town");
