@@ -25,8 +25,16 @@ namespace freeDusty
             TimeEvents.AfterDayStarted += this.AfterDayStarted;
             SaveEvents.BeforeSave += this.BeforeSave;
             MenuEvents.MenuChanged += this.MenuChanged;
+            LocationEvents.CurrentLocationChanged += LocationChange;
 
             //GameEvents.EighthUpdateTick += this.Second;
+        }
+
+        // Invalidate town sprites when player moves
+        public void LocationChange(object sender, EventArgs e)
+        {
+            Helper.Content.InvalidateCache(prefix + "_town");
+            Helper.Content.InvalidateCache(@"/Maps/" + prefix + "_town");
         }
 
         // Prevent Dusty from getting angry when the player digs through trash near him
@@ -61,14 +69,14 @@ namespace freeDusty
 
         public void AfterDayStarted(object sender, EventArgs e)
         {
-            String prefix = "";
-
             if (Game1.currentSeason.ToLower().Equals("spring") || Game1.currentSeason.ToLower().Equals("summer"))
                 prefix = "spring";
             else if (Game1.currentSeason.ToLower().Equals("fall"))
                 prefix = "fall";
             else
                 prefix = "winter";
+
+           //this.Monitor.Log("Season is " + Game1.currentSeason.ToLower());
 
             // Determine spawn map
             // If player is married to Alex, spawn him on farm or in the house
@@ -95,14 +103,14 @@ namespace freeDusty
             // If no spawn map could be determined, Dusty should be in his box
             else if (spawnMap == null)
                 emptyBox = this.Helper.Content.Load<Texture2D>("assets/" + prefix + "BoxEyes.xnb", ContentSource.ModFolder);
-
+/*
             if (spawnMap == null)
                 this.Monitor.Log("Did not spawn Dusty today.");
             else
                 this.Monitor.Log("Spawned Dusty at " + spawnMap.Name + " (" + doggie.Position.X/64 + "/" + doggie.Position.Y/64 + ")");
 
             this.Monitor.Log("Is Dusty at "+spawnMap + "? -> " + spawnMap.characters.Contains(doggie));
-
+            */
 
                    // Make Dusty's area walkable
                    // TODO: Figure this out
