@@ -14,6 +14,7 @@ namespace freeDusty
     {
         Dusty doggie;
         GameLocation spawnMap;
+        String prefix = "";
 
         public override void Entry(IModHelper helper)
         {
@@ -24,9 +25,17 @@ namespace freeDusty
                 SaveEvents.BeforeSave += this.BeforeSave;
 
                 MenuEvents.MenuChanged += this.MenuChanged;
+                PlayerEvents.Warped += this.Warped;
 
                 //GameEvents.EighthUpdateTick += this.Second;
             }
+        }
+
+        // Reload town sprites
+        public void Warped(object sender, EventArgs e)
+        {
+            Helper.Content.InvalidateCache(prefix + "_town");
+            Helper.Content.InvalidateCache(@"/Maps/" + prefix + "_town");
         }
 
         // Prevent Dusty from getting angry when the player digs through trash near him
@@ -53,7 +62,7 @@ namespace freeDusty
 
         public void AfterDayStarted(object sender, EventArgs e)
         {
-            String prefix = "";
+            prefix = "";
 
             if (Game1.currentSeason.ToLower().Equals("spring") || Game1.currentSeason.ToLower().Equals("summer"))
                 prefix = "spring";
