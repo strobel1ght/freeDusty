@@ -17,14 +17,16 @@ namespace freeDusty
 
         public override void Entry(IModHelper helper)
         {
-            helper.Content.AssetLoaders.Add(new DustyLoader(this.Helper));         
+            if(!Context.IsMultiplayer) { 
+                helper.Content.AssetLoaders.Add(new DustyLoader(this.Helper));         
 
-            TimeEvents.AfterDayStarted += this.AfterDayStarted;
-            SaveEvents.BeforeSave += this.BeforeSave;
+                TimeEvents.AfterDayStarted += this.AfterDayStarted;
+                SaveEvents.BeforeSave += this.BeforeSave;
 
-            MenuEvents.MenuChanged += this.MenuChanged;            
+                MenuEvents.MenuChanged += this.MenuChanged;
 
-            //GameEvents.EighthUpdateTick += this.Second;
+                //GameEvents.EighthUpdateTick += this.Second;
+            }
         }
 
         // Prevent Dusty from getting angry when the player digs through trash near him
@@ -84,10 +86,10 @@ namespace freeDusty
             else if(spawnMap == null)
                 Helper.Content.AssetEditors.Add(new BoxEditor(this.Helper, prefix, true));
 
-            //if (spawnMap == null)
-                //this.Monitor.Log("Did not spawn Dusty today.");
-            //else
-                //this.Monitor.Log("Spawned Dusty at " + spawnMap.Name + " (" + doggie.Position.X/64 + "/" + doggie.Position.Y/64 + ")");
+            if (spawnMap == null)
+                this.Monitor.Log("Did not spawn Dusty today.");
+            else
+                this.Monitor.Log("Spawned Dusty at " + spawnMap.Name + " (" + doggie.Position.X/64 + "/" + doggie.Position.Y/64 + ")");
 
             //this.Monitor.Log("Is Dusty at "+spawnMap + "? -> " + spawnMap.characters.Contains(doggie));
 
@@ -151,7 +153,7 @@ namespace freeDusty
 
                     // 70% chance to discard the random position and just spawn him in his pen
                     if (posFound) {
-                        if (Game1.random.Next(1, 10) > 7)
+                        if (Game1.random.Next(1, 10) <= 7)
                         {
                             spawn.X = 52;
                             spawn.Y = 67;

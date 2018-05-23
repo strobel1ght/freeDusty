@@ -30,6 +30,9 @@ namespace freeDusty
             this.willDestroyObjectsUnderfoot = false;            
         }
 
+        // Just to be safe, a bug was reported that Dusty shows up in the relations tab
+        public override bool CanSocialize => false;
+
         public override bool canTalk()
         {
             return false;
