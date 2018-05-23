@@ -37,10 +37,11 @@ namespace freeDusty
             Helper.Content.InvalidateCache(@"/Maps/" + prefix + "_town");
         }
 
-        // Prevent Dusty from getting angry when the player digs through trash near him
-        public void MenuChanged(object sender, EventArgs e)
+        
+        public void MenuChanged(object sender, EventArgsClickableMenuChanged e)
         {
-            if(Game1.activeClickableMenu is DialogueBox dialogue)
+            // Prevent Dusty from getting angry when the player digs through trash near him
+            if (Game1.activeClickableMenu is DialogueBox dialogue)
             {
                // //this.Monitor.Log("Dialogue is up with contents " + dialogue.getCurrentString());                
                 if (dialogue.getCurrentString().Equals("Hey, Stop that! ...Yuck!") || (Game1.currentSpeaker != null && Game1.currentSpeaker.Equals(doggie)))
@@ -49,6 +50,21 @@ namespace freeDusty
                     doggie.isEmoting = false;
                     //this.Monitor.Log("Abort, abort!");                                      
                 }
+            }
+
+            // Remove Dusty from the social page
+            if(e.NewMenu is GameMenu gameMenu && doggie != null)
+            {
+                SocialPage socialPage = (SocialPage)this.Helper.Reflection.GetField<List<IClickableMenu>>(gameMenu, "pages").GetValue()[GameMenu.socialTab];
+                List<ClickableTextureComponent> friendNames = this.Helper.Reflection.GetField<List<ClickableTextureComponent>>(socialPage, "friendNames").GetValue();
+                IDictionary<string, string> npcNames = this.Helper.Reflection.GetField<Dictionary<string, string>>(socialPage, "npcNames").GetValue();
+
+                friendNames.RemoveAll(p => p.name == "Dusty");
+                npcNames.Remove("Dusty");
+
+                socialPage.updateSlots();
+
+                //this.Monitor.Log("Removed Dusty from social page");
             }
         }
 
