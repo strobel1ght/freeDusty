@@ -29,12 +29,7 @@ namespace freeDusty
             this.speed = 2;
             this.willDestroyObjectsUnderfoot = false;            
         }
-
- /*       public override bool canTalk()
-        {
-            return false;
-        }*/
-
+        
         public bool moved = false;
         public int moveCount = 0;
         
@@ -104,8 +99,8 @@ namespace freeDusty
                     this.wagTail(true);
 
             }
-            //}
-
+            //}            
+                
             this.MovePosition(time, Game1.viewport, this.currentLocation);                       
         }
         // Default: right

@@ -26,7 +26,7 @@ namespace freeDusty
             SaveEvents.BeforeSave += this.BeforeSave;
             MenuEvents.MenuChanged += this.MenuChanged;
 
-           // GameEvents.EighthUpdateTick += this.Second;
+            //GameEvents.EighthUpdateTick += this.Second;
         }
 
         // Prevent Dusty from getting angry when the player digs through trash near him
@@ -49,14 +49,14 @@ namespace freeDusty
             if (doggie == null)
                 return;
 
-          /*  if (doggie.currentLocation != null)
-                //this.Monitor.Log("Doggie's map is " + doggie.currentLocation.ToString());
+            if (doggie.currentLocation != null)
+                this.Monitor.Log("Doggie's map is " + doggie.currentLocation.ToString());
             else
-                //this.Monitor.Log("Doggie's location is null");
+                this.Monitor.Log("Doggie's location is null");
 
             if(spawnMap != null && spawnMap.characters.Contains(doggie))
-                //this.Monitor.Log("Dusty is at " + doggie.Position.X/64 + "/" + doggie.Position.Y/64);
-                */
+                this.Monitor.Log("Dusty is at " + doggie.Position.X/64 + "/" + doggie.Position.Y/64);
+                
         }
 
         public void AfterDayStarted(object sender, EventArgs e)
@@ -96,36 +96,13 @@ namespace freeDusty
             else if (spawnMap == null)
                 emptyBox = this.Helper.Content.Load<Texture2D>("assets/" + prefix + "BoxEyes.xnb", ContentSource.ModFolder);
 
-         //   if (spawnMap == null)
-            //this.Monitor.Log("Did not spawn Dusty today.");
-          //  else
-            //this.Monitor.Log("Spawned Dusty at " + spawnMap.Name + " (" + doggie.Position.X/64 + "/" + doggie.Position.Y/64 + ")");
+            if (spawnMap == null)
+                this.Monitor.Log("Did not spawn Dusty today.");
+            else
+                this.Monitor.Log("Spawned Dusty at " + spawnMap.Name + " (" + doggie.Position.X/64 + "/" + doggie.Position.Y/64 + ")");
 
-            //this.Monitor.Log("Is Dusty at "+spawnMap + "? -> " + spawnMap.characters.Contains(doggie));
+            this.Monitor.Log("Is Dusty at "+spawnMap + "? -> " + spawnMap.characters.Contains(doggie));
 
-
-            /*   // Spawn Dusty
-               if (!Game1.isRaining && !Game1.isSnowing)
-               {
-                   spawnMap = Game1.getLocationFromName("Town");
-
-                   Vector2 inPen = new Vector2(53, 68) * 64f;                
-                   Vector2 spawn = this.GetDustySpawn();
-
-                   // Spawn Dusty in his pen 70% of the time
-                   // Spawn him somewhere in town 30% of the time
-                   if (Game1.random.Next(1, 10) > 7)
-                   {
-                       //this.Monitor.Log("Spawning Dusty at " + spawn.X + "/" + spawn.Y+"");
-                       doggie = new Dusty(new AnimatedSprite(dustyTex, 0, 29, 25), spawn, 0, "Dusty");
-                   }
-                   else
-                   {
-                       //this.Monitor.Log("Spawning Dusty in his pen.");
-                       doggie = new Dusty(new AnimatedSprite(dustyTex, 0, 29, 25), inPen, 0, "Dusty");
-                   }                
-
-                   spawnMap.addCharacter(doggie);
 
                    // Make Dusty's area walkable
                    // TODO: Figure this out
@@ -141,23 +118,10 @@ namespace freeDusty
 
                             //this.Monitor.Log("Made tile " + i + "/" + j + " walkable");
                         }
-                    }*
-
-                   // Patch Dusty's box so that his eyes don't peek out
-                   if (Game1.currentSeason.ToLower().Equals("spring") || Game1.currentSeason.ToLower().Equals("summer"))
-                       prefix = "spring";
-                   else if (Game1.currentSeason.ToLower().Equals("fall"))
-                       prefix = "fall";
-                   else
-                       prefix = "winter";
-
-                   // TODO: Fix it like for 1.3
-                   emptyBox = this.Helper.Content.Load<Texture2D>("assets/" + prefix + "Box.xnb", ContentSource.ModFolder);
-                   */
+                    }*/
 
             Helper.Content.InvalidateCache(prefix + "_town");
-                Helper.Content.InvalidateCache(@"/Maps/" + prefix + "_town");
-            //}
+            Helper.Content.InvalidateCache(@"/Maps/" + prefix + "_town");
         }
 
         // Remove Dusty NPC at the end of the day to avoid serialization issues
@@ -193,16 +157,6 @@ namespace freeDusty
                     // Not in the cordoned off area above Clint's shop
                     if (posFound && ((spawn.X >= 88 && spawn.X <= 106) && (spawn.Y >= 63 && spawn.Y <= 75)))
                         posFound = false;
-
-                    // 70% chance to spawn in his pen instead
-                    if(posFound)
-                    {
-                        if(Game1.random.Next(1, 10) > 7)
-                        {
-                            spawn.X = 52;
-                            spawn.Y = 67;
-                        }
-                    }
                 }
                 else if (spawnMap.Name.Equals("Farm"))
                 {
@@ -227,6 +181,13 @@ namespace freeDusty
             {
                 //this.Monitor.Log("Spawn location isn't clear, finding nearby clear location...");
                 spawn = FindSafePosition(spawn);
+            }
+
+            // 70% chance to spawn in his pen instead
+            if (Game1.random.Next(1, 10) <= 7)
+            {
+                spawn.X = 53;
+                spawn.Y = 68;
             }
 
             //this.Monitor.Log("Seems to be clear for spawn.");
