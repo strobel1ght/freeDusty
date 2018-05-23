@@ -87,18 +87,19 @@ namespace freeDusty
             // Find spawn point and spawn Dusty
             if(Game1.player.IsMainPlayer && spawnMap != null)
             {
-                    doggie = new Dusty(new AnimatedSprite("Dusty.xnb", 0, 29, 25), this.GetDustySpawn(), 0, "Dusty");
+                    doggie = new Dusty(new AnimatedSprite("Dusty.xnb", 0, 29, 25), this.GetDustySpawn(), 0, "Dusty");                
                     spawnMap.addCharacter(doggie);
                     Helper.Content.AssetEditors.Add(new BoxEditor(this.Helper, prefix, false));
             }
             // If no spawn map could be determined, Dusty should be in his box
             else if(spawnMap == null)
                 Helper.Content.AssetEditors.Add(new BoxEditor(this.Helper, prefix, true));
-
+/*
             if (spawnMap == null)
                 this.Monitor.Log("Did not spawn Dusty today.");
             else
                 this.Monitor.Log("Spawned Dusty at " + spawnMap.Name + " (" + doggie.Position.X/64 + "/" + doggie.Position.Y/64 + ")");
+                */
 
             //this.Monitor.Log("Is Dusty at "+spawnMap + "? -> " + spawnMap.characters.Contains(doggie));
 
