@@ -150,15 +150,6 @@ namespace freeDusty
                     // Not in the cordoned off area above Clint's shop
                     if (posFound && ((spawn.X >= 88 && spawn.X <= 106) && (spawn.Y >= 63 && spawn.Y <= 75)))
                         posFound = false;
-
-                    // 70% chance to discard the random position and just spawn him in his pen
-                    if (posFound) {
-                        if (Game1.random.Next(1, 10) <= 7)
-                        {
-                            spawn.X = 52;
-                            spawn.Y = 67;
-                        }
-                    }                        
                 }
                 else if(spawnMap.Name.Equals("Farm"))
                 {
@@ -184,6 +175,13 @@ namespace freeDusty
                 //this.Monitor.Log("Spawn location isn't clear, finding nearby clear location...");
                 spawn = FindSafePosition(spawn);
             }
+
+            // 70% chance to discard the random position and just spawn him in his pen
+            if (Game1.random.Next(1, 10) <= 7)
+            {
+                spawn.X = 53;
+                spawn.Y = 68;
+            }           
 
             //this.Monitor.Log("Seems to be clear for spawn.");
 
