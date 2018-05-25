@@ -151,7 +151,7 @@ namespace freeDusty
         // Remove Dusty NPC at the end of the day to avoid serialization issues
         public void BeforeSave(object sender, EventArgs e)
         {
-            if (spawnMap != null)
+            if (spawnMap != null && doggie != null)
             {
                 //this.Monitor.Log("Removing Dusty to escape evil serialization");
                 doggie.currentLocation.characters.Remove(doggie);
