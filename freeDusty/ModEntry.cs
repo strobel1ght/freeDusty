@@ -131,7 +131,7 @@ namespace freeDusty
         {
             //this.Monitor.Log("Removing Dusty from " + doggie.currentLocation.Name + " ... is he on that map? " + doggie.currentLocation.characters.Contains(doggie)+" ... he is at "+ doggie.currentLocation.ToString());
             
-            if (spawnMap != null && doggie.currentLocation.characters.Contains(doggie))
+            if (spawnMap != null && doggie != null && doggie.currentLocation.characters.Contains(doggie))
             {
                 //this.Monitor.Log("Removing Dusty to escape evil serialization");
                 doggie.currentLocation.characters.Remove(doggie);
