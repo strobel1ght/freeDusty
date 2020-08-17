@@ -158,6 +158,38 @@ namespace freeDusty
         private Vector2 GetDustySpawn()
         {
             //this.Monitor.Log("Finding spawn point...");
+            Vector2 spawn;
+            // 70% chance to just spawn him in his pen
+            // When married to Alex, spawn him near the water bowl instead
+            // If spawning inside the farmhouse, leave him alone
+            if (Game1.random.Next(1, 10) <= 7)
+            {
+
+                if (spawnMap.Name.Equals("Town"))
+                {
+                    //this.Monitor.Log("Spawning at pen", LogLevel.Debug);
+                    spawn.X = 53;
+                    spawn.Y = 68;
+                }
+                else if (spawnMap.Name.Equals("Farm"))
+                {
+                    //this.Monitor.Log("Spawning near the water bowl", LogLevel.Debug);
+                    spawn.X = 52;
+                    spawn.Y = 7;
+                }
+                else
+                {
+                    spawn = GetRandomSpawn();
+                }
+            }
+            else
+            {
+                spawn = GetRandomSpawn();
+            }
+            return spawn * 64f;
+        }
+
+        private Vector2 GetRandomSpawn() {
 
             Vector2 spawn = spawnMap.getRandomTile();
 
@@ -203,16 +235,10 @@ namespace freeDusty
                 spawn = FindSafePosition(spawn);
             }
 
-            // 70% chance to discard the random position and just spawn him in his pen
-            if (Game1.random.Next(1, 10) <= 7)
-            {
-                spawn.X = 53;
-                spawn.Y = 68;
-            }           
 
             //this.Monitor.Log("Seems to be clear for spawn.");
 
-            return spawn * 64f;
+            return spawn;
         }
 
         private Vector2 FindSafePosition(Vector2 pos)
