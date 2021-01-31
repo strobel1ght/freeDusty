@@ -1,43 +1,35 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using StardewModdingAPI;
-using StardewValley;
 
 namespace freeDusty
 {
     // Removes the eyes from Dusty's box
     internal class BoxEditor : IAssetEditor
     {
-        private IModHelper Helper;
-        private string prefix = "";
-        private bool eyes = false;
+        private readonly IModHelper _helper;
+        private readonly string _prefix;
+        private readonly bool _eyes;
 
         public BoxEditor(IModHelper helper, string pre = "", bool eyes = false)
         {
-            this.Helper = helper;
-            prefix = pre;
-            this.eyes = eyes;
+            _helper = helper;
+            _prefix = pre;
+            _eyes = eyes;
         }
 
         public bool CanEdit<T>(IAssetInfo asset)
         {
-            if (asset.AssetNameEquals(prefix + "_town"))
-                return true;
-            else if (asset.AssetNameEquals(@"/Maps/" + prefix + "_town"))
-                return true;
-
-            return false;           
+            return asset.AssetNameEquals("/Maps/" + _prefix + "_town");
         }
-        
+
         public void Edit<T>(IAssetData asset)
         {
-            Texture2D emptyBox = this.Helper.Content.Load<Texture2D>("assets/"+prefix+"Box.png", ContentSource.ModFolder);
-            Texture2D eyesBox = this.Helper.Content.Load<Texture2D>("assets/" + prefix + "BoxEyes.png", ContentSource.ModFolder);
-
-            if(!eyes)
-                asset.AsImage().PatchImage(emptyBox, targetArea: new Rectangle(192, 0, 16, 16));
-            else
-                asset.AsImage().PatchImage(eyesBox, targetArea: new Rectangle(192, 0, 16, 16));
+            if (!asset.AssetNameEquals("/Maps/" + _prefix + "_town")) return;
+            var editor = asset.AsImage();
+            var emptyBox = _helper.Content.Load<Texture2D>("assets/" + _prefix + "Box.png");
+            var eyesBox = _helper.Content.Load<Texture2D>("assets/" + _prefix + "BoxEyes.png");
+            editor.PatchImage(!_eyes ? emptyBox : eyesBox, targetArea: new Rectangle(192, 0, 16, 16));
         }
     }
 }

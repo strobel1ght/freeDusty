@@ -1,33 +1,25 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Collections.Generic;
 using System.Xml.Serialization;
 using Microsoft.Xna.Framework;
-using StardewModdingAPI;
-using StardewModdingAPI.Events;
 using StardewValley;
 
 namespace freeDusty
 {
-    public class Dusty : NPC
+    public sealed class Dusty : NPC
     {
-        [XmlIgnore]
-        public int currentBehavior = 0;
-        [XmlIgnore]
-        public int startedBehavior = -1;
-        [XmlIgnore]
-        public bool collides = false;
+        [XmlIgnore] public int CurrentBehavior = 0;
+        [XmlIgnore] public int StartedBehavior = -1;
+        [XmlIgnore] public bool Collides = false;
 
         public Dusty(AnimatedSprite animatedSprite, Vector2 position, int facingDir, string name)
         {
-            this.Sprite = animatedSprite;
-            this.Position = position;
-            this.FacingDirection = facingDir;
-            this.Name = name;
-
-            this.DefaultMap = "Town";
-            this.speed = 2;
-            this.willDestroyObjectsUnderfoot = false;            
+            Sprite = animatedSprite;
+            Position = position;
+            FacingDirection = facingDir;
+            Name = name;
+            DefaultMap = "Town";
+            speed = 2;
+            willDestroyObjectsUnderfoot = false;
         }
 
         // Just to be safe, a bug was reported that Dusty shows up in the relations tab
@@ -38,81 +30,84 @@ namespace freeDusty
             return false;
         }
 
-        public bool moved = false;
-        public int moveCount = 0;
-        
-        // TODO: Customize a bit more. Ideas: Walk towards player if he's near, try to follow Alex if he's in range, ...
-        public override void update(GameTime time, GameLocation location, long id, bool move)
-        {
-            double next = Game1.random.NextDouble();
-            location = this.currentLocation;
+        public bool Moved = false;
+        public int MoveCount = 0;
 
+        // TODO: Customize a bit more. Ideas: Walk towards player if he's near, try to follow Alex if he's in range, ...
+        public override void update(GameTime time, GameLocation location, long id1, bool move)
+        {
+            var next = Game1.random.NextDouble();
             // Behavior before 20:00
             //if (Game1.timeOfDay < 2000)
             //{
             // Walk around randomly
             if (next < 0.007)
             {
-                this.Sprite.CurrentAnimation = null;
-
-                int direction = Game1.random.Next(10);
+                Sprite.CurrentAnimation = null;
+                var direction = Game1.random.Next(10);
                 //if (direction != (this.FacingDirection + 2) % 4)
                 //{
-                    int facingDirection = this.FacingDirection;
-                    this.faceDirection(direction);
+                faceDirection(direction);
+                if (direction < 4)
+                    if (currentLocation.isCollidingPosition(nextPosition(direction), Game1.viewport, this))
+                    {
+                        faceDirection(facingDirection);
+                        return;
+                    }
 
-                    if (direction < 4)
-                    {
-                        if (this.currentLocation.isCollidingPosition(this.nextPosition(direction), Game1.viewport, this))
-                        {
-                            this.faceDirection(facingDirection);
-                            return;
-                        }
-                    }
-                    switch (direction)
-                    {
-                        case 0:
-                            this.SetMovingUp(true);
-                            break;
-                        case 1:
-                            this.SetMovingRight(true);
-                            break;
-                        case 2:
-                            this.SetMovingDown(true);
-                            break;
-                        case 3:
-                            this.SetMovingLeft(true);
-                            break;
-                        default:
-                            this.Halt();
-                            this.Sprite.StopAnimation();
-                            break;
-                    }
+                switch (direction)
+                {
+                    case 0:
+                        SetMovingUp(true);
+                        break;
+                    case 1:
+                        SetMovingRight(true);
+                        break;
+                    case 2:
+                        SetMovingDown(true);
+                        break;
+                    case 3:
+                        SetMovingLeft(true);
+                        break;
+                    default:
+                        Halt();
+                        Sprite.StopAnimation();
+                        break;
+                }
+
                 //}
             }
+
             // Animate ... if facing right, left or down
-            if(next >= 0.007 && next < 0.014)
+            if (next >= 0.007 && next < 0.014)
             {
-                int right = Game1.random.Next(0, 1);
-
-                if (this.FacingDirection == 1 && right == 0)
-                    this.pant();
-                else if (this.FacingDirection == 1 && right == 1)
-                    this.wagTail();
-                else if (this.FacingDirection == 2)
-                    this.pantDown();
-                else if (this.FacingDirection == 3 && right == 0)
-                    this.pant(true);
-                else if (this.FacingDirection == 3 && right == 1)
-                    this.wagTail(true);
-
+                var right = Game1.random.Next(0, 1);
+                switch (FacingDirection)
+                {
+                    case 1 when right == 0:
+                        Pant();
+                        break;
+                    case 1 when right == 1:
+                        WagTail();
+                        break;
+                    case 2:
+                        PantDown();
+                        break;
+                    case 3 when right == 0:
+                        Pant(true);
+                        break;
+                    case 3 when right == 1:
+                        WagTail(true);
+                        break;
+                }
             }
             //}
 
-            this.MovePosition(time, Game1.viewport, this.currentLocation);                       
+            MovePosition(time, Game1.viewport, currentLocation);
         }
+
         // Default: right
-        private void pant(bool flip = false)
+        private void Pant(bool flip1 = false)
         {
             /*
              * This looks so much like humping it's not even funny
@@ -124,45 +119,38 @@ namespace freeDusty
                             new FarmerSprite.AnimationFrame(0, 200)
                         });
             */
-            this.Halt();
-            this.Sprite.setCurrentAnimation(new List<FarmerSprite.AnimationFrame>()
+            Halt();
+            Sprite.setCurrentAnimation(new List<FarmerSprite.AnimationFrame>
             {
-                new FarmerSprite.AnimationFrame(23, 200, false, flip),                
-                new FarmerSprite.AnimationFrame(24, 200, false, flip),
-                new FarmerSprite.AnimationFrame(25, 200, false, flip),
-                new FarmerSprite.AnimationFrame(26, 200, false, flip)
+                new FarmerSprite.AnimationFrame(23, 200, false, flip1),
+                new FarmerSprite.AnimationFrame(24, 200, false, flip1),
+                new FarmerSprite.AnimationFrame(25, 200, false, flip1),
+                new FarmerSprite.AnimationFrame(26, 200, false, flip1)
             });
-
-            if (this.withinPlayerThreshold(5) && Game1.random.Next(0, 1) == 0)
-                Game1.playSound("dog_pant");
+            if (withinPlayerThreshold(5) && Game1.random.Next(0, 1) == 0) Game1.playSound("dog_pant");
         }
 
-        private void pantDown()
+        private void PantDown()
         {
-            this.Halt();
-            this.Sprite.setCurrentAnimation(new List<FarmerSprite.AnimationFrame>()
+            Halt();
+            Sprite.setCurrentAnimation(new List<FarmerSprite.AnimationFrame>
             {
                 new FarmerSprite.AnimationFrame(17, 200),
                 new FarmerSprite.AnimationFrame(18, 200),
                 new FarmerSprite.AnimationFrame(19, 200)
             });
-
-            if (this.withinPlayerThreshold(5) && Game1.random.Next(0, 1) == 0)
-                Game1.playSound("dog_pant");
+            if (withinPlayerThreshold(5) && Game1.random.Next(0, 1) == 0) Game1.playSound("dog_pant");
         }
 
-        private void wagTail(bool flip = false)
+        private void WagTail(bool flip1 = false)
         {
-            this.Halt();
-            this.Sprite.setCurrentAnimation(new List<FarmerSprite.AnimationFrame>()
+            Halt();
+            Sprite.setCurrentAnimation(new List<FarmerSprite.AnimationFrame>
             {
-                new FarmerSprite.AnimationFrame(23, 200, false, flip),
-                new FarmerSprite.AnimationFrame(31, 200, false, flip)
+                new FarmerSprite.AnimationFrame(23, 200, false, flip1),
+                new FarmerSprite.AnimationFrame(31, 200, false, flip1)
             });
-
-            if (this.withinPlayerThreshold(5) && Game1.random.Next(0, 1) == 0)
-                Game1.playSound("dog_bark");
-
+            if (withinPlayerThreshold(5) && Game1.random.Next(0, 1) == 0) Game1.playSound("dog_bark");
             /* Sleeping while floating :|
             this.Sprite.setCurrentAnimation(new List<FarmerSprite.AnimationFrame>()
             {

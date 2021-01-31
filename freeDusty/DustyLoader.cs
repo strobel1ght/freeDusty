@@ -1,4 +1,4 @@
-﻿using Microsoft.Xna.Framework.Graphics;
+﻿using System;
 using StardewModdingAPI;
 
 namespace freeDusty
@@ -6,11 +6,11 @@ namespace freeDusty
     // Loads the Dusty sprite
     internal class DustyLoader : IAssetLoader
     {
-        private static IModHelper Helper;
+        private static IModHelper _helper;
 
-        public DustyLoader(IModHelper h)
+        public DustyLoader(IModHelper helper)
         {
-            Helper = h;
+            _helper = helper;
         }
 
         public bool CanLoad<T>(IAssetInfo asset)
@@ -19,9 +19,10 @@ namespace freeDusty
         }
 
         public T Load<T>(IAssetInfo asset)
-        {            
-            Texture2D dustyTex = Helper.Content.Load<Texture2D>("assets/Dusty.png", ContentSource.ModFolder);
-            return (T)(object)dustyTex;
+        {
+            if (asset.AssetNameEquals(@"Dusty")) return _helper.Content.Load<T>("assets/Dusty.png");
+
+            throw new InvalidOperationException($"Unexpected asset '{asset.AssetName}'.");
         }
     }
 }
